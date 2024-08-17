@@ -1,0 +1,39 @@
+# Author Gaurav
+# Date 2024-6-11
+term=$(slint-viewer - --save-data - << EOF
+import { StandardButton, GridBox, LineEdit } from "std-widgets.slint";
+component UserDataDialog inherits Dialog {
+    property name <=> name-le.condasearch;
+    StandardButton { kind: ok; }
+    StandardButton { kind: cancel; }
+    preferred-width: 300px;
+    GridBox {
+        Row {
+            Text { text: "Enter your conda search:"; }
+            name-le := LineEdit { }
+        }
+        }
+    }
+}
+EOF
+)
+wget -F "https://anaconda.org/search?q=${term}" -O condasearch.txt
+echo "all term fetched"
+cat condasearch.txt | grep ${term} | \
+         grep href | cut -f 2 -d "=" \
+              | cut -f 1 -d ">" | grep -w ${term} > saveintermediate.txt
+echo "all intermediate generated"
+for i in $(cat saveintermediate.txt); do echo \
+        "https@//anaconda.org$i"; done | \
+                     sed "s/\"//g" | sed "s/@/:/g" > downloadlinks.txt
+echo "moving into intermediate"
+mkdir intermediate
+cp -r downloadlinks.txt ./intermediate
+cd intermediate
+cat downloadlinks.txt | while read line; \
+          do wget -F ${line}; done
+cat * | grep -w install | grep ${term} > newsave.txt
+cat newsave.txt | grep code | cut -f 2 -d ">" | cut -f 1 -d "<"
+cd ..
+rm -rf intermediate
+rm -rf saveintermediate.txt finaltext.txt downloadlinks.txt condasearch.txt
