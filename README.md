@@ -5,4 +5,4 @@
 cargo install slint-viewer
 ```
 
-Gaurav 
+Gaurav Sablok
